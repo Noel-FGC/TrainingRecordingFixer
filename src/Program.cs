@@ -27,6 +27,7 @@ namespace TrainingRecordingFixer {
         writeStream.Write(frame);
         writeStream.Write((byte[])[0x00, 0x00]);
       }
+      writeStream.Flush();
     }
   }
 }
