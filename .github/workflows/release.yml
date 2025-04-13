@@ -1,0 +1,36 @@
+name: Build and Upload on release
+
+on: push
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Build 
+      run: dotnet publish -r win-x64 -p:PublishSingleFile=true --no-self-contained
+
+    - name: Calculate checksums
+      working-directory: ${{ github.workspace }}/bin/Release/net8.0/win-x64/publish
+      run: | 
+        md5sum TrainingRecordingFixer.exe | awk '{ print $1 }'> TrainingRecordingFixer.exe.md5
+        sha256sum TrainingRecordingFixer.exe | awk '{ print $1 }'> TrainingRecordingFixer.exe.sha256
+
+    - name: Release TrainingRecordingFixer
+      uses: softprops/action-gh-release@v2
+      if: github.ref_type == 'tag'
+      with:
+        files: |
+            ./bin/Release/net8.0/win-x64/publish/TrainingRecordingFixer.exe
+            ./bin/Release/net8.0/win-x64/publish/TrainingRecordingFixer.exe.md5
+            ./bin/Release/net8.0/win-x64/publish/TrainingRecordingFixer.exe.sha256
